@@ -129,12 +129,7 @@ export class ThreeManager {
       this.sceneManager.updateLights(this.controlsManager.getActiveCamera());
     } else {
       // If VR is active don't use EffectComposer
-      this.rendererManager.getMainRenderer().render(
-        this.sceneManager.getScene(),
-        this.controlsManager.getMainCamera()
-      );
-      // The light directs towards origin
-      this.sceneManager.updateLights(this.vrManager.getVRCamera());
+      console.log('ERROR! Should not be calling render() when in VR mode.')
     }
   }
 
@@ -550,6 +545,8 @@ export class ThreeManager {
    */
   public initVRSession(onSessionEnded?: () => void) {
     // Set up the camera position in the VR - Adding a group with camera does it
+    // For why we can't just move the camera directly, see e.g. 
+    // https://stackoverflow.com/questions/34470248/unable-to-change-camera-position-when-using-vrcontrols/34471170#34471170
     const cameraGroup = this.vrManager
       .getCameraGroup(this.controlsManager.getMainCamera());
     this.sceneManager.getScene().add(cameraGroup);
@@ -560,12 +557,12 @@ export class ThreeManager {
 
     // Set up the animation loop
     const animate = () => {
-      this.minimalRender();
+      this.minimalRender(); 
     };
     mainRenderer.setAnimationLoop(animate);
 
     // Set and initialize the VR session
-    this.vrManager.setVRSession(mainRenderer, onSessionEnded);
+    this.vrManager.setVRSession(mainRenderer, this.sceneManager.getScene(), onSessionEnded );
   }
 
   /**
@@ -578,7 +575,7 @@ export class ThreeManager {
     mainRenderer.xr.enabled = false;
     // Remove the animation loop
     mainRenderer.setAnimationLoop(null);
-    this.vrManager.endVRSession();
+    this.vrManager.endVRSession(this.sceneManager.getScene());
   }
 
   /**
@@ -593,6 +590,7 @@ export class ThreeManager {
    * @param parameters The name, dimensions, and radial values for this cylindrical volume.
    */
   public addGeometryFromParameters(parameters: any): void {
+    // FIXME - want to handle the parameters better.
     let scene = this.getSceneManager().getScene();
     let moduleName = parameters.ModuleName;
     let moduleXdim = parameters.Xdim;
