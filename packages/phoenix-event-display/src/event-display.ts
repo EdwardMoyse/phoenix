@@ -85,6 +85,7 @@ export class EventDisplay {
    * @param onSessionEnded Callback when the VR session ends.
    */
   public initVR(onSessionEnded?: () => void) {
+    cancelAnimationFrame(this.frameID)
     this.graphicsLibrary.initVRSession(onSessionEnded);
   }
 
@@ -93,6 +94,15 @@ export class EventDisplay {
    */
   public endVR() {
     this.graphicsLibrary.endVRSession();
+
+    // FIXME - Just copied the code from above. Handle more elegantly.
+    const animate = () => {
+      this.frameID = requestAnimationFrame(animate);
+      this.graphicsLibrary.updateControls();
+      this.ui.updateUI();
+      this.graphicsLibrary.render();
+    };
+    animate();
   }
 
   /**
